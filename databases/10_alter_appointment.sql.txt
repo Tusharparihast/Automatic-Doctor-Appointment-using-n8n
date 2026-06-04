@@ -1,0 +1,11 @@
+alter table appointments
+add constraint valid_appointent_status
+check (status in (
+  'scheduled',
+  'confirmed',
+  'in_progress',
+  'completed',
+  'cancelled',
+  'rescheduled',
+  'no_show'
+));

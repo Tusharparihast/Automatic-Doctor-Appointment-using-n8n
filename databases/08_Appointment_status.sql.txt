@@ -1,0 +1,55 @@
+-- Create reusable appointment status type
+create type appointment_status as enum (
+    'scheduled',
+    'confirmed',
+    'in_progress',
+    'completed',
+    'cancelled',
+    'rescheduled',
+    'no_show'
+);
+
+
+create table appointment_status_history (
+
+    id bigint generated always as identity primary key,
+
+    appointment_id bigint
+    references appointments(id)
+    on delete cascade
+    not null,
+
+    old_status appointment_status,
+
+    new_status appointment_status
+    not null,
+
+    -- who changed it
+    changed_by_id bigint,
+
+    -- who performed the action
+    -- patient / doctor / admin / ai_system
+    changed_by_type varchar(30),
+
+    -- optional notes
+    reason text,
+
+    changed_at timestamp with time zone
+    default now() not null,
+
+    created_at timestamp with time zone
+    default now() not null
+
+    constraint valid_changed_by_type
+    check (
+        changed_by_type in (
+            'patient',
+            'doctor',
+            'admin',
+            'ai_system'
+        )
+        and (
+            changed_by_id is null or changed_by_type is not null
+        )
+    )
+);

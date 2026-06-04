@@ -1,0 +1,10 @@
+create table doctor_unavailable_dates (
+
+  id bigint generated always as identity primary key,
+
+  doctor_id bigint
+  references doctors(id),
+
+  unavailable_date date,
+  reason text not null
+);

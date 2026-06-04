@@ -1,0 +1,9 @@
+create type weekday as enum (
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thrusday',
+  'Friday',
+  'Saturday'
+);

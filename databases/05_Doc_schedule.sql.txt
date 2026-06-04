@@ -1,0 +1,10 @@
+create table doctor_schedule ( 
+  id bigint generated always as identity primary key,
+  doctor_id bigint 
+  references doctors(id) on delete cascade,
+   
+  day_of_week weekday, 
+  appointment_date date not null, 
+  appointment_time time not null, 
+  created_at timestamp default now() 
+  );

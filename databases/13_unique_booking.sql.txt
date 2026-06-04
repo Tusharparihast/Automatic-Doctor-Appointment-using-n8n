@@ -1,0 +1,7 @@
+alter table appointments
+add constraint unique_appointment
+unique(
+  doctor_id,
+  appointment_date,
+  appointment_time
+);

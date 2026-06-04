@@ -1,0 +1,35 @@
+create table invoices (
+
+  id bigint generated always as identity primary key,
+
+  invoice_number varchar(50) unique not null 
+  check (trim(invoice_number) != ''),
+
+  appointment_id bigint
+  references appointments(id) on delete restrict unique not null,
+
+  patient_email varchar(150) 
+  references patients(email) on delete restrict not null,
+
+  amount decimal(10,2) not null check (amount >= 0),
+  discount decimal(10,2) default 0.00 check (discount >= 0),
+  tax decimal(10,2) default 0.00 check (tax >= 0),
+  total_amount decimal(10,2) not null check(total_amount >= 0),
+
+  payment_status varchar(20) default 'unpaid'
+  check (payment_status in (
+    'unpaid',
+    'paid',
+    'partially_paid',
+    'refunded'
+  )),
+
+  payment_method varchar(30) 
+    CHECK (payment_method IN ('cash', 'credit_card', 'insurance', 'digital_wallet')),
+        
+    -- 6. Live Payment Tracking
+  transaction_reference varchar(100), -- Holds Stripe/PayPal/Bank reference string
+  issued_at timestamp with time zone DEFAULT now() NOT NULL,
+  due_date date NOT NULL CHECK (due_date >= CAST(issued_at AS date)),
+  paid_at timestamp with time zone
+);

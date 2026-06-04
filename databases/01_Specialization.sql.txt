@@ -1,0 +1,19 @@
+create table specializations (
+  id bigint generated always as identity primary key,
+
+  name varchar(100) unique not null,
+  description text,
+  is_active boolean default true,
+  created_at timestamp default now(),
+
+  updated_at timestamp default now()
+);
+
+insert into specializations(name)
+values
+('Cardiology'),
+('Dermatology'),
+('Neurology'),
+('Orthopedics'),
+('Pediatrics'),
+('General Medicine');

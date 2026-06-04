@@ -1,0 +1,18 @@
+create table users (
+
+  id bigint generated always as identity primary key,
+
+  email varchar(150) unique not null,
+  
+  passsword_hash text not null,
+
+  role varchar(20) not null check (
+    role in ( 
+      'patient',
+      'doctor',
+      'admin staff'
+    )
+  ),
+  active boolean default true,
+  created_at timestamp default now()
+);

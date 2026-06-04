@@ -1,0 +1,19 @@
+create table doctors (
+  id bigint generated always as identity primary key,
+  full_name varchar(150) not null,
+  
+  specialization_name varchar(100)
+  references specializations(name),
+
+  email varchar(150) UNIQUE NOT NULL CHECK (email LIKE '%@%.%' AND email NOT LIKE '% %'),
+  
+  phone varchar(30),
+
+  consultation_fee decimal(10,2) CHECK (consultation_fee > 0),
+
+  experience_years integer CHECK (experience_years BETWEEN 0 AND 70),
+
+  active boolean default true,
+
+  created_at timestamp default now()
+);

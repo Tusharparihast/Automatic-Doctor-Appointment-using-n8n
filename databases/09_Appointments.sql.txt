@@ -1,0 +1,21 @@
+create table appointments (
+
+    id bigint generated always as identity primary key,
+
+    patient_id bigint
+    references patients(id),
+
+    doctor_id bigint
+    references doctors(id),
+
+    appointment_date date not null,
+
+    appointment_time time not null,
+
+    symptoms text,
+
+    status varchar(30)
+    default 'scheduled',
+
+    created_at timestamp default now()
+);

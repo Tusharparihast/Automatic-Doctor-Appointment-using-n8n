@@ -1,0 +1,48 @@
+create table medical_records (
+
+    id bigint generated always as identity primary key,
+
+    appointment_id bigint
+    references appointments(id)
+    on delete cascade
+    not null,
+
+    patient_id bigint
+    references patients(id)
+    not null,
+
+    doctor_id bigint
+    references doctors(id)
+    not null,
+
+    -- Core clinical data
+    diagnosis text not null,
+    treatment_plan text,
+    prescriptions text,
+
+    -- Vitals
+    vitals_summary varchar(200),
+
+    -- Follow-up
+    follow_up_required boolean default false,
+
+    follow_up_date date
+    check(
+        follow_up_date >= current_date
+        OR follow_up_date is null
+    ),
+
+    -- Files
+    attachment_url varchar(500),
+
+    -- Legal
+    is_confidential boolean default false,
+
+    created_at timestamp with time zone
+    default now()
+    not null,
+
+    updated_at timestamp with time zone
+    default now()
+    not null
+);

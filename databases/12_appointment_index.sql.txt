@@ -1,0 +1,2 @@
+create unique index unique_medical_record_per_appointment
+on medical_records(appointment_id);

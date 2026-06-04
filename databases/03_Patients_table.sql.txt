@@ -1,0 +1,8 @@
+create table patients (
+  id bigint generated always as identity primary key,
+
+  full_name varchar(150),
+  email varchar(150) unique not null check (email like '%@%.%' AND email NOT LIKE '% %'),
+  phone varchar(10),
+  created_at timestamp default now()
+);
