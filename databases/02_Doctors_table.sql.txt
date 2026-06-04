@@ -11,6 +11,8 @@ create table doctors (
 
   consultation_fee decimal(10,2) CHECK (consultation_fee > 0),
 
+  consultation_duration integer default 30,
+
   experience_years integer CHECK (experience_years BETWEEN 0 AND 70),
 
   active boolean default true,
