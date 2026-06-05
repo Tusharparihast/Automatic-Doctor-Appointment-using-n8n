@@ -18,4 +18,10 @@ create table appointments (
     default 'scheduled',
 
     created_at timestamp default now()
+
+    -- INTEGRATED CONSTRAINT: Injected directly inside the table creation block
+    CONSTRAINT valid_appointment_status CHECK (
+        status IN ('scheduled', 'confirmed', 'in_progress', 'completed', 'cancelled', 'rescheduled', 'no_show')
+    )
 );
+
