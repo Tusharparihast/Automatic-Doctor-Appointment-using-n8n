@@ -1,7 +1,0 @@
-ALTER TABLE appointments
-ADD CONSTRAINT unique_doctor_booking
-UNIQUE(
-doctor_id,
-appointment_date,
-appointment_time
-);

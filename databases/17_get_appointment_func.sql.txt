@@ -1,0 +1,29 @@
+CREATE OR REPLACE FUNCTION get_appointments(p_patient_id bigint DEFAULT null)
+RETURNS TABLE (
+    appt_id bigint,
+    patient varchar(150),
+    doctor varchar(150),
+    booked_date date,        -- Position 4 (Now matches perfectly!)
+    booked_time time,        -- Position 5
+    current_status varchar(30),
+    reason text
+) 
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        a.id AS appt_id,
+        p.full_name::varchar(150) AS patient,
+        d.full_name::varchar(150) AS doctor,
+        a.appointment_date AS booked_date, -- Position 4 (Matches date type!)
+        a.appointment_time AS booked_time, -- Position 5 (Matches time type!)
+        a.status::varchar(30) AS current_status,
+        a.symptoms AS reason
+    FROM appointments a
+    JOIN patients p ON a.patient_id = p.id
+    JOIN doctors d ON a.doctor_id = d.id
+    WHERE (p_patient_id IS NULL OR a.patient_id = p_patient_id)
+    ORDER BY a.appointment_date ASC, a.appointment_time ASC;
+END;
+$$;

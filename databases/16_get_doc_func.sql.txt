@@ -1,0 +1,24 @@
+create or replace function get_doctors()
+returns table(
+
+  doctor_id bigint,
+  doctor_name varchar,
+  specializations varchar,
+  fee decimal(10,2),
+  experience_years integer
+)
+
+language plpgsql
+as $$
+begin 
+  return query
+  select
+    d.id,
+    d.full_name,
+    d.specialization_name,
+    d.consultation_fee,
+    d.experience_years
+  from doctors d
+  where d.active = true;  --Automatically filters out hidden/inactive staff
+end;
+$$;
