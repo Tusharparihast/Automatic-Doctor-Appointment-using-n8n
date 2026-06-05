@@ -6,8 +6,6 @@ RETURNS TABLE (slot_start time, slot_end time)
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    schedule_start time;
-    schedule_end time;
     duration_minutes integer;
 BEGIN
     -- 1. Security Check: Instantly return an empty grid if the doctor is on vacation
@@ -19,38 +17,33 @@ BEGIN
         RETURN; 
     END IF;
 
-    -- 2. Automatically pull the doctor's shift hours and duration for this specific day of the week
-    SELECT ds.start_time, ds.end_time, d.consultation_duration 
-    INTO schedule_start, schedule_end, duration_minutes
-    FROM doctor_schedule ds
-    JOIN doctors d ON d.id = ds.doctor_id
-    WHERE ds.doctor_id = p_doctor_id 
-      AND ds.day_of_week = TRIM(TO_CHAR(p_date, 'Day'))
-      AND d.active = true;
+    -- 2. Fetch the doctor's custom duration (Defaults to 30 if null)
+    SELECT COALESCE(consultation_duration, 30)
+    INTO duration_minutes
+    FROM doctors 
+    WHERE id = p_doctor_id AND active = true;
 
-    -- 3. If no schedule is found for this day of the week, exit silently
-    IF duration_minutes IS NULL OR schedule_start IS NULL THEN
+    -- If doctor doesn't exist or is inactive, exit silently
+    IF duration_minutes IS NULL THEN
         RETURN;
     END IF;
 
-    -- 4. Generate the intervals AND filter out already taken appointments
+    -- 3. Search your existing rows directly and filter out already taken appointments
     RETURN QUERY
-    WITH generated_slots AS (
-        SELECT generate_series(
-            (p_date + schedule_start)::timestamp,
-            (p_date + schedule_end - (duration_minutes || ' minutes')::interval)::timestamp,
-            (duration_minutes || ' minutes')::interval
-        ) AS slot_timestamp
-    )
     SELECT 
-        slot_timestamp::time AS slot_start,
-        (slot_timestamp + (duration_minutes || ' minutes')::interval)::time AS slot_end
-    FROM generated_slots gs
-    WHERE NOT EXISTS (
-        SELECT 1 
-        FROM appointments a 
-        WHERE a.doctor_id = p_doctor_id 
-          AND a.appointment_start = gs.slot_timestamp -- Automatically links precise booking block
-    );
+        ds.appointment_time AS slot_start,
+        (ds.appointment_time + (duration_minutes || ' minutes')::interval)::time AS slot_end
+    FROM doctor_schedule ds
+    WHERE ds.doctor_id = p_doctor_id 
+      AND ds.appointment_date = p_date
+      -- Security Lock: Only show slots that aren't already booked in the appointments table
+      AND NOT EXISTS (
+          SELECT 1 
+          FROM appointments a 
+          WHERE a.doctor_id = p_doctor_id 
+            AND a.appointment_date = p_date
+            AND a.appointment_time = ds.appointment_time
+      )
+    ORDER BY ds.appointment_time ASC;
 END;
 $$;
