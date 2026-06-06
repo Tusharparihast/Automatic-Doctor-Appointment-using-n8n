@@ -1,0 +1,95 @@
+{
+  "name": "API: Book Appointment",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO doctors (id, full_name, email, active, consultation_duration)\nOVERRIDING SYSTEM VALUE\nVALUES (1, 'Dr. Sarah Smith', 'sarah.smith@clinic.com', true, 30)\nON CONFLICT (id) DO UPDATE \nSET active = true, consultation_duration = 30;\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -32,
+        64
+      ],
+      "id": "e137f317-bacc-4c59-9843-0a634869b107",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "Hy0gWp4Aaw04gpZh",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "path": "get-doctors",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -256,
+        -48
+      ],
+      "id": "78aab450-f70a-496a-90dd-650e13a20521",
+      "name": "Webhook",
+      "webhookId": "1f3eaf22-bd03-4f93-9775-98a70bda40c1"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        160,
+        112
+      ],
+      "id": "3d521787-d65d-4119-b0cc-823bc598496b",
+      "name": "Respond to Webhook",
+      "alwaysOutputData": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "638549b1-efad-4cbd-92c5-bb938c4d1b10",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "317d7a9ddd287d7575fe60780b36676958f28c92484f5f66346aa08a198d2a42"
+  },
+  "nodeGroups": [],
+  "id": "k1IsfAT7rweBaxMj",
+  "tags": []
+}

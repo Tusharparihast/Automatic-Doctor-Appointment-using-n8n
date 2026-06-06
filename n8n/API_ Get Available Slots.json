@@ -1,0 +1,95 @@
+{
+  "name": "API: Get Available Slots",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "get-slots",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c445dc30-66be-4860-96af-2535c955a790",
+      "name": "Webhook",
+      "webhookId": "98d1beb7-7e27-4e28-bb6a-258f02c2a06a"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT slot_start, slot_end \nFROM generate_available_slots(\n    '{{ $json.body.doctorId }}'::bigint, \n    '{{ $json.body.selectedDate }}'::date\n);\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        224,
+        128
+      ],
+      "id": "a17434b0-3029-486e-a875-c6e089d3df91",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "Hy0gWp4Aaw04gpZh",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        432,
+        128
+      ],
+      "id": "126e5dbb-8fbe-4ea1-bd81-cf49dd6e1ec5",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "85cd65f0-f7c6-4d0b-a708-2a47bdfbe3c4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "317d7a9ddd287d7575fe60780b36676958f28c92484f5f66346aa08a198d2a42"
+  },
+  "nodeGroups": [],
+  "id": "ji3lqm0V4R4SvUsn",
+  "tags": []
+}
