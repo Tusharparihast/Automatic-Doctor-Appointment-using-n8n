@@ -1,0 +1,95 @@
+{
+  "name": "API: Get Appointments",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "987aff2b-ced4-469c-b531-b6668abb5a80",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        32,
+        -64
+      ],
+      "id": "51b56215-60ee-42ce-9798-6edb96da98d8",
+      "name": "Webhook",
+      "webhookId": "987aff2b-ced4-469c-b531-b6668abb5a80"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        448,
+        48
+      ],
+      "id": "3e8e6675-3dc7-4901-acb0-868e390fa26d",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM get_appointments('{{ $json.body.patientId }}'::bigint);\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        208,
+        0
+      ],
+      "id": "36544f71-e64a-4159-967b-38eb203392fb",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "thbUmPG7vdzzeVNj",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "7b2367d6-0874-4d59-b465-78362a03c315",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c226e18c7fe4eb6f7f0df0b06a97d47f23f6632f2681f95b0685a55c9a2be854"
+  },
+  "nodeGroups": [],
+  "id": "AkfgdINDO0lmyRK6",
+  "tags": []
+}
