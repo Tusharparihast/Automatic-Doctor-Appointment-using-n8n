@@ -1,0 +1,106 @@
+{
+  "name": "Worker: Automated Invoicing Engine",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -352,
+        -96
+      ],
+      "id": "0c8480c1-3af7-4278-b055-f7a6efcb660e",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select \na.id as appointment_id,\np.email as patient_email,\nd.consultation_fee\n\nfrom appointments a\njoin doctors d on a.doctor_id = d.id\njoin patients p on a.patient_id = p.id\n\nwhere a.status = 'completed'\n  and not exists (\n    select 1 from invoices i where i.appointment_id = a.id\n  \n  );",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -80,
+        -32
+      ],
+      "id": "65bec55e-1b6c-4c83-b7ce-5558eae4ffda",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "T8nphNYCBsyHrqQL",
+          "name": "Postgres account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "insert into invoices (\n\n  invoice_number,\n  appointment_id,\n  patient_email,\n  amount,\n  tax,\n  total_amount,\n  payment_status,\n  transaction_reference,\n  issued_at,\n  due_date,\n  paid_at\n) values (\n\n  'INV-' || '{{ $json.appointment_id }}' || '-' || TO_CHAR(NOW(), 'YYYYMMDD'), -- 1. Unique string (e.g. INV-1-20260608)\n  '{{  $json.appointment_id }}'::bigint,\n  '{{ $json.patient_email }}'::varchar,\n  '{{  $json.consultation_fee }}'::numeric,\n  ('{{ $json.consultation_fee }}'::numeric * 0.13), -- Automatic 13% tax math\n  ('{{ $json.consultation_fee }}'::numeric * 1.13), -- Total sum math\n    'unpaid',\n    null,\n    NOW(),\n    (NOW() + INTERVAL '7 days')::date, -- Sets a strict 7-day deadline window\n    null\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        144,
+        16
+      ],
+      "id": "9e089305-ab9e-489a-99e9-a9a6c2eab65b",
+      "name": "Execute a SQL query1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "thbUmPG7vdzzeVNj",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "ad597a4a-0e75-4d7b-8366-375d4f58e8dc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c226e18c7fe4eb6f7f0df0b06a97d47f23f6632f2681f95b0685a55c9a2be854"
+  },
+  "nodeGroups": [],
+  "id": "FFB0IiNOHI7ZT11W",
+  "tags": []
+}
