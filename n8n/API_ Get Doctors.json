@@ -1,0 +1,96 @@
+{
+  "name": "API: Get Doctors",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "get-doctors",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -448,
+        -112
+      ],
+      "id": "2697386c-6af5-475a-aad0-1e388a82efd6",
+      "name": "Webhook",
+      "webhookId": "f1d6b17b-d919-4f98-933b-ad7853f80387"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM get_doctors();",
+        "options": {
+          "queryReplacement": ""
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -224,
+        0
+      ],
+      "id": "d17a21d1-dc9d-429d-ad40-26cc6c063a85",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "T8nphNYCBsyHrqQL",
+          "name": "Postgres account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -16,
+        80
+      ],
+      "id": "d1813a89-deb0-4b18-a8da-9c36bdc13ba7",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "137cef33-69df-4054-9102-3806c6682ae6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c226e18c7fe4eb6f7f0df0b06a97d47f23f6632f2681f95b0685a55c9a2be854"
+  },
+  "nodeGroups": [],
+  "id": "W1SYOCL8usi1uzfT",
+  "tags": []
+}
