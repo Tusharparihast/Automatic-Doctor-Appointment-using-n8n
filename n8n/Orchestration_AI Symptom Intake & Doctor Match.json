@@ -1,0 +1,229 @@
+{
+  "name": "Orchestration: AI Symptom Intake & Doctor Match",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ai-intake",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "5ef0807d-3abb-48c3-b3b6-63d451d1d12e",
+      "name": "Webhook",
+      "webhookId": "13ca869f-98cb-429b-b3db-17cd1f6bc2f1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are an expert clinical triage AI assistant. Review the past dialogue history loaded from the Postgres memory cache. Analyze the user's symptoms and output a strict JSON object with exactly two text keys:\n1. Internally condense and summarize all old background details.\n2. Analyze the current incoming user symptoms.\n3. \"specialization\": Must be exactly one of these matching string names: 'Cardiology', 'Neurology', 'Dermatology', 'Orthopedics' ,'Pediatrics', or 'General Medicine'.\n4. \"urgency\": Rate from 'low', 'medium', or 'high'.\n\nDo not output any introductory pleasantries, text formatting, or explanations. Output ONLY the raw JSON string.\n",
+              "role": "model"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        256,
+        128
+      ],
+      "id": "26884eef-92a6-4df7-b448-245b009bb875",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "gdcN3vgnwlspv9FL",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n    doctor_id, \n    doctor_name, \n    fee \nFROM get_doctors() \nWHERE LOWER(TRIM(specializations)) = LOWER(TRIM('{{ $json.output.specialization }}'))\nLIMIT 1;\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        640,
+        144
+      ],
+      "id": "bbc6797a-be77-4737-ab67-bf227a71fa12",
+      "name": "Execute a SQL query",
+      "alwaysOutputData": true,
+      "retryOnFail": false,
+      "credentials": {
+        "postgres": {
+          "id": "thbUmPG7vdzzeVNj",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        880,
+        192
+      ],
+      "id": "bf11d125-e908-419b-9069-769c7400d76d",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -16,
+        544
+      ],
+      "id": "02e4ec81-24d9-42e5-9308-f643ff4d233a",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "gdcN3vgnwlspv9FL",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.body.patientId }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.4,
+      "position": [
+        208,
+        576
+      ],
+      "id": "eaca57b3-17a6-4c8f-9f28-2611de992a16",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "T8nphNYCBsyHrqQL",
+          "name": "Postgres account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "Processes patient symptom strings, extracts the clinical specialization and urgency levels, and reads/writes persistent chat dialogue records to the Postgres memory cache.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        192,
+        336
+      ],
+      "id": "e7313363-4fe5-4fe8-8a0f-2cb946654a06",
+      "name": "AI Agent Tool"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent Tool",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent Tool",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Message a model",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "432d84ae-218e-4026-8bee-5a57b8b14616",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c226e18c7fe4eb6f7f0df0b06a97d47f23f6632f2681f95b0685a55c9a2be854"
+  },
+  "nodeGroups": [],
+  "id": "5Dub5TXdI3JM88xx",
+  "tags": []
+}
