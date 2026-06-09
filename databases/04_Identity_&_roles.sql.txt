@@ -4,7 +4,7 @@ create table users (
 
   email varchar(150) unique not null,
   
-  passsword_hash text not null,
+  password_hash text not null,
 
   role varchar(20) not null check (
     role in ( 

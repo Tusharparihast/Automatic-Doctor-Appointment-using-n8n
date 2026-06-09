@@ -1,0 +1,24 @@
+create or replace function verify_user_login(
+
+  input_email varchar(150),
+  input_password text
+)
+returns table (
+  user_id bigint,
+  user_role varchar(20),
+  is_active boolean
+) as $$
+begin
+    return query
+    select
+        id,
+        role::varchar(20),
+        active
+    from users
+    where email = lower(trim(input_email))
+    -- Uses pgcrypto to safely check the encrypted text against your exact typo column name
+    and password_hash = crypt(input_password, password_hash)
+    and active = true;
+  end;
+  $$
+  language plpgsql security definer;
