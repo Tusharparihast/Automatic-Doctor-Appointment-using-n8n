@@ -1,0 +1,95 @@
+{
+  "name": "API: User Authentication",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "login",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -480,
+        -112
+      ],
+      "id": "e7e5a2a4-0521-4883-989d-68a4bd321409",
+      "name": "Webhook",
+      "webhookId": "5117e7d3-1fda-45b6-b603-480dcadf95d5"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        96,
+        16
+      ],
+      "id": "dfb14158-ca90-4e22-aa72-22447eecd3dc",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select * from verify_user_login (\n  '{{ $json.body.email }}'::varchar,\n  '{{ $json.body.password }}'::text\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -192,
+        -64
+      ],
+      "id": "4b2527d0-4482-443a-818a-6a27398debea",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "thbUmPG7vdzzeVNj",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "ebe40179-251d-483d-abfe-8996f5649a9d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c226e18c7fe4eb6f7f0df0b06a97d47f23f6632f2681f95b0685a55c9a2be854"
+  },
+  "nodeGroups": [],
+  "id": "GaVsO1sLaxVLuwrL",
+  "tags": []
+}
