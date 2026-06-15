@@ -1,16 +1,69 @@
-import axios from 'axios';
+import axios, {
+  AxiosError,
+  type AxiosInstance,
+  type InternalAxiosRequestConfig,
+} from "axios";
 
-type ImportMetaEnv = {
-  NEXT_PUBLIC_N8N_API_URL?: string;
-};
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
 
-// 📡 Central network helper linked to your local n8n workflow server
-const axiosInstance = axios.create({
-  baseURL: ((import.meta as ImportMeta & { env?: ImportMetaEnv }).env?.NEXT_PUBLIC_N8N_API_URL) || 'http://localhost:5678',
+const AUTH_TOKEN_KEY = "doctor_app_token";
+
+function getStoredToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return window.localStorage.getItem(AUTH_TOKEN_KEY);
+}
+
+export function setStoredToken(token: string | null): void {
+  if (typeof window === "undefined") return;
+  if (token) {
+    window.localStorage.setItem(AUTH_TOKEN_KEY, token);
+  } else {
+    window.localStorage.removeItem(AUTH_TOKEN_KEY);
+  }
+}
+
+export function getApiErrorMessage(error: unknown): string {
+  if (axios.isAxiosError(error)) {
+    const axiosError = error as AxiosError<{ message?: string }>;
+
+    return (
+      axiosError.response?.data?.message ||
+      axiosError.message ||
+      "Something went wrong"
+    );
+  }
+
+  if (error instanceof Error) return error.message;
+
+  return "Something went wrong";
+}
+
+export const api: AxiosInstance = axios.create({
+  baseURL: API_BASE_URL || undefined,
+  timeout: 15000,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
-  timeout: 10000, // Automatically drops the call if n8n doesn't reply within 10 seconds
 });
 
-export default axiosInstance;
+api.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    const token = getStoredToken();
+
+    if (token) {
+      config.headers = config.headers ?? {};
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const message = getApiErrorMessage(error);
+    return Promise.reject(new Error(message));
+  }
+);
