@@ -1,0 +1,54 @@
+create or replace function auto_book_appointment (
+  p_patient_id bigint,
+  p_doctor_id bigint,
+  p_date date,
+  p_symptoms text default null
+)
+returns table (
+  appointment_id bigint,
+  booked_time time,
+  booking_status text
+)
+language plpgsql
+AS $$
+DECLARE
+    scheduled_start_time time;
+    scheduled_end_time time;
+    duration_minutes integer;
+    new_appointment_id bigint;
+BEGIN
+    -- 1. Fetch the absolute earliest available time slot generated for this day
+    SELECT slot_start, slot_end 
+    INTO scheduled_start_time, scheduled_end_time
+    FROM generate_available_slots(p_doctor_id, p_date) 
+    ORDER BY slot_start ASC 
+    LIMIT 1;
+
+    -- 2. Guard Check: If the slot array returns empty, notify the engine immediately
+    IF scheduled_start_time IS NULL THEN
+        RETURN QUERY SELECT null::bigint, null::time, 'No available slot'::text;
+        RETURN;
+    END IF;
+
+    -- 3. Execute Booking: Merge date parameters into your active schema timestamps
+    INSERT INTO appointments ( 
+        patient_id, 
+        doctor_id, 
+        appointment_date, -- Standard schema column
+        appointment_time,   -- Standard schema column
+        symptoms,
+        status 
+    ) VALUES ( 
+        p_patient_id, 
+        p_doctor_id, 
+        (p_date + selected_start_time)::timestamp, -- Combines date and start time
+        (p_date + selected_end_time)::timestamp,   -- Combines date and end time
+        p_symptoms,
+        'scheduled' 
+    ) 
+    RETURNING id INTO new_appointment_id;
+
+    -- 4. Send back the confirmation parameters to n8n/frontend client
+    RETURN QUERY SELECT new_appointment_id, selected_start_time, 'Booked successfully'::text;
+END;
+$$;
