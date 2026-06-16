@@ -6,6 +6,8 @@ export interface AuthUser {
   user_id: number;
   user_role: UserRole;
   is_active: boolean;
+  email: string;
+  full_name: string;
 }
 
 // Input parameters captured by your visual login form component
