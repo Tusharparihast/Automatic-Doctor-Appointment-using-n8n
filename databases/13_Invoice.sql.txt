@@ -8,8 +8,8 @@ create table invoices (
   appointment_id bigint
   references appointments(id) on delete restrict unique not null,
 
-  patient_email varchar(150) 
-  references patients(email) on delete restrict not null,
+  patient_id bigint 
+  references patients(id) on delete restrict not null,
 
   amount decimal(10,2) not null check (amount >= 0),
   discount decimal(10,2) default 0.00 check (discount >= 0),

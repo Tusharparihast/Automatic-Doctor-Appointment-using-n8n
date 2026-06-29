@@ -2,8 +2,8 @@ create table doctors (
   id bigint generated always as identity primary key,
   full_name varchar(150) not null,
   
-  specialization_name varchar(100)
-  references specializations(name),
+  specialization_id bigint
+  references specializations(id),
 
   email varchar(150) UNIQUE NOT NULL CHECK (email LIKE '%@%.%' AND email NOT LIKE '% %'),
   
@@ -18,4 +18,5 @@ create table doctors (
   active boolean default true,
 
   created_at timestamp default now()
+
 );
